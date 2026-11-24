@@ -124,7 +124,7 @@ function App() {
   const canEdit = !!(account && ((owner && owner.toLowerCase() === account.toLowerCase()) || (target && draft && !meta && target.workspace === account.toLowerCase().slice(2))))
   const version = selected ?? meta?.version ?? 0
   const live = draft ?? current
-  const stale = published && published.schedule.revision !== meta?.revision
+  const stale = published && meta && published.schedule.revision < meta.revision
   const active = activity !== null && !state.startsWith('EVM transaction reverted') && (!receipt || !['FINALIZED','CANCELED'].includes(receipt.statusName ?? ''))
   const conflicts = live?.tasks.filter(slot => !live.people.some(member => eligible(member, slot))) ?? []
   const close = () => {setModal(null); setPerson(null); setTask(null); setDetails(null); setError('')}
@@ -261,6 +261,9 @@ function App() {
   const isDemo = target?.workspace === demo.workspace && target.event === demo.event
   const demoTransactions = deployment.demoTransactions as Record<string, string>
   const scheduleTx = isDemo && published ? demoTransactions[String(version)] : undefined
+  const inEvent = view !== 'My events'
+  const certifiedConflict = attempt?.status === 'infeasible' && attempt.revision === meta?.revision ? attempt : null
+  const accessHint = !account ? (inEvent && target ? 'Connect a wallet to create an event. Only this event’s owner can edit it or generate schedules.' : 'Connect a wallet to create an event.') : inEvent && target && owner && !canEdit ? 'Only this event’s owner can edit it or generate schedules. You can create your own event.' : ''
   const conflictTx = isDemo && attempt?.status === 'infeasible' ? demoTransactions.conflict : undefined
 
   return <div className="layout">
@@ -275,7 +278,13 @@ function App() {
       <button onClick={() => void run(async () => setAccount(await connect()))}>{account ? account.slice(0, 6) + '…' + account.slice(-4) : 'Connect wallet'}</button>
     </div></header>
     <div className="content">
-      <section className="intro"><div><div className="eyebrow">COMMUNITY SCHEDULING</div><h1>{view === 'My events' ? 'My events' : live?.title || 'Make time work.'}</h1><p>{live ? `${live.date}  ·  ${live.zone}` : 'Build a schedule around your people, not the other way around.'}</p></div><div className="actions"><button onClick={() => setModal('open')}>Open event</button><button className="primary" disabled={!account || !contract || active} onClick={() => void run(async () => {
+      <section className="intro"><div>
+        <h1>{inEvent ? live?.title || (isDemo ? 'Public demo workspace' : 'ShiftQuorum') : 'My events'}</h1>
+        {inEvent && isDemo && live && <p className="workspace-label">Public demo workspace</p>}
+        {inEvent && live && <p>{live.date} · {live.zone}</p>}
+        <p className="intro-description">ShiftQuorum uses AI to propose shifts around availability, skills, and preferences. GenLayer validators independently review each schedule before it is finalized.</p>
+        {accessHint && <p id="workspace-access">{accessHint}</p>}
+      </div><div className="actions"><button onClick={() => setModal('open')}>Open event</button><button className="primary" disabled={!account || !contract || active} aria-describedby={!account ? 'workspace-access' : undefined} onClick={() => void run(async () => {
         const own = account!.toLowerCase().slice(2)
         if (!await read<string>(contract!, 'owner', [own], false)) {await write('Create workspace', 'create_workspace', [own]); return}
         load({workspace: own, event: newId()}); setDraft(emptyEvent()); setModal('event')
@@ -302,19 +311,22 @@ function App() {
         })}>Finalize transaction</button>}
         {activity && (receipt?.statusName === 'FINALIZED' || receipt?.statusName === 'CANCELED' || state.startsWith('EVM transaction reverted')) && <button onClick={() => {setActivity(null); setState(''); localStorage.removeItem('sq.activity')}}>Dismiss</button>}
       </div></div>}
-      {draft && target && <div className="notice activity"><span><strong>Unsaved changes</strong> · Save inputs on Bradbury before generating.</span><div className="actions"><button disabled={active || busy} onClick={() => {setDraft(null); setError('')}}>Discard</button><button className="primary" disabled={!canEdit || busy || active} onClick={() => void run(async () => {
+      {inEvent && draft && target && <div className="notice activity"><span><strong>Unsaved changes</strong> · Save inputs on Bradbury before generating.</span><div className="actions"><button disabled={active || busy} onClick={() => {setDraft(null); setError('')}}>Discard</button><button className="primary" disabled={!canEdit || busy || active} onClick={() => void run(async () => {
         const problem = inputError(draft)
         if (problem) throw Error(problem)
         await write('Save event', 'save_event', [target.workspace, target.event, meta?.revision ?? 0, JSON.stringify(draft)])
       })}>Save event</button></div></div>}
-      {attempt?.status === 'infeasible' && attempt.revision === meta?.revision && <div className="notice warning"><strong>Certified scheduling conflict.</strong> No eligible participant for {current?.tasks.find(item => item.id === attempt.task)?.title ?? attempt.task}. {meta?.version ? `Schedule V${meta.version} is preserved.` : 'No schedule was published.'}</div>}
-      {draft && !!conflicts.length && <div className="notice warning"><strong>Draft conflict preview.</strong> No eligible participant for {conflicts.map(item => item.title).join(', ')}.</div>}
+      {inEvent && certifiedConflict && <div className="notice warning">
+        <strong>Certified scheduling conflict.</strong> No eligible participant for {current?.tasks.find(item => item.id === certifiedConflict.task)?.title ?? certifiedConflict.task} in input revision {certifiedConflict.revision}.{' '}
+        {meta?.version ? `Schedule V${meta.version} remains finalized for earlier inputs. It does not resolve this conflict.` : 'No schedule was published.'}
+      </div>}
+      {inEvent && draft && !!conflicts.length && <div className="notice warning"><strong>Draft conflict preview.</strong> No eligible participant for {conflicts.map(item => item.title).join(', ')}.</div>}
 
       {view === 'My events' && <section className="surface"><div className="section-head"><h2>Recent events</h2></div>{events.length ? events.map(item => <button className="event-row" key={item.workspace + item.event} onClick={() => load(item)}><strong>{item.title}</strong><span>Open →</span></button>) : <div className="empty"><h3>Your next event starts here</h3><p>Connect a wallet and create an event, or open a shared schedule.</p></div>}</section>}
       {view === 'Schedule' && <section className="surface">
-        <div className="section-head"><div><h2>Schedule board</h2><p>{published ? `Finalized schedule V${version} · Input revision ${published.schedule.revision}${stale ? ' · Earlier inputs' : ''}` : version ? 'Loading the finalized assignment snapshot…' : 'Assignments appear after GenLayer finalizes a schedule.'}</p></div>
+        <div className="section-head"><div><h2>Schedule board</h2><p>{published ? `Finalized schedule V${version} · Input revision ${published.schedule.revision}${stale ? ' · Based on earlier inputs' : ''}` : version ? 'Loading the finalized assignment snapshot…' : 'Assignments appear after GenLayer finalizes a schedule.'}</p></div>
         <div className="actions">{contract && <button onClick={() => setModal('technical')}>Schedule details</button>}{meta && meta.version > 0 && <button onClick={() => navigator.clipboard.writeText(location.href).then(() => setState('Event link copied.')).catch(() => setError('Unable to copy the link.'))}>Copy link</button>}
-        <button className="primary" disabled={!contract || !account || !target || !canEdit || !meta || !current?.tasks.length || !!draft || active || busy} onClick={() => void run(async () => {
+        <button className="primary" disabled={!contract || !account || !target || !canEdit || !meta || !current?.tasks.length || !!draft || active || busy} aria-describedby={accessHint ? 'workspace-access' : undefined} onClick={() => void run(async () => {
           if (target && meta) await write('Generate schedule', 'generate', [target.workspace, target.event, meta.revision, meta.version, newId()])
         })}>Generate schedule</button></div></div>
         {boardEvent ? <Board event={boardEvent} schedule={published?.schedule ?? null} onTask={setDetails}/> : <div className="empty calendar-empty"><div className="motif" aria-hidden="true"><i/><i/><i/><i/><i/></div><h3>{target ? (loading && contract ? 'Loading event…' : 'Schedule unavailable') : 'Plan your first event'}</h3><p>{target ? (loading && contract ? 'Reading current event inputs from Bradbury.' : 'Open a finalized event or create one from your workspace.') : 'Bring tasks, availability, and preferences together in one place.'}</p></div>}
