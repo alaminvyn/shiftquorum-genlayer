@@ -9,3 +9,12 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 .board-scroll .lane-name{position:sticky;left:0;z-index:1;background:white}.lane:first-child .lane-name{background:#fafbfc}
+.tech-links{display:grid;gap:12px;font-size:14px}.tech-links a{width:fit-content;text-underline-offset:3px}
+.agenda{display:none}
+@media(max-width:767px){
+  .board-scroll{display:none}.agenda{display:grid}
+  .agenda-lane{display:grid;gap:8px;padding:14px 15px;border-bottom:1px solid var(--border)}
+  .agenda-lane:last-child{border-bottom:0}.agenda-person{display:flex;align-items:center;gap:9px}.agenda-person small,.agenda-empty{font-size:12px}
+  .agenda-slot{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;white-space:normal;border:1px solid #20263122}
+  .agenda-slot strong{overflow-wrap:anywhere}.agenda-slot small{font-size:12px;white-space:nowrap;color:#384352}
+}

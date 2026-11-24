@@ -1,5 +1,10 @@
 {
   "contract": "0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8",
   "demoWorkspace": "f6dbf59ccaa56d044c3e7bb72a136b96c277d52b",
-  "demoEvent": "6de503d1-3ae4-45b5-8852-f35a2db7bcce"
+  "demoEvent": "6de503d1-3ae4-45b5-8852-f35a2db7bcce",
+  "demoTransactions": {
+    "1": "0x056d448bc5fde309feb4026027e57ef53ec9b79dbade9d9e049abcac8193c1ce",
+    "2": "0x966ae8efff4c25dffd011e7698c34e3af5bdab0745e0cb5df5fdfc9617fddaa6",
+    "conflict": "0xa226a24ec24cfcf2d68880f3e6e1984358bea1894d63819a27818c7b5f1278cf"
+  }
 }

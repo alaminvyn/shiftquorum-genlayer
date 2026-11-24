@@ -2,6 +2,8 @@
 
 ShiftQuorum coordinates single-day community events. Organizers enter task slots, skills, availability, workload limits, and natural-language preferences. GenLayer generates and evaluates assignments that the team can use on a shared scheduling board.
 
+[Open the live scheduling workspace](https://shiftquorum-genlayer.vercel.app/) · [Bradbury contract](https://scan.bradbury.genlayer.com/address/0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8)
+
 ## How it works
 
 A single Python Intelligent Contract owns the workflow. A Bradbury leader proposes assignments with a JSON LLM call. Validators check the same frozen event input and perform their own semantic review through the pinned runner's custom `gl.vm.run_nondet` callback. A proposed preference improvement used to reject a candidate must itself pass hard constraints. The contract rechecks complete task coverage, known IDs, skill compatibility, availability, half-open intervals, and workload caps before writing a schedule.

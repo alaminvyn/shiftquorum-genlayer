@@ -29,7 +29,7 @@ function Board({event, schedule, onTask}: {event: EventInput; schedule: Schedule
   const hours = Array.from({length: Math.ceil((end - first) / 60)}, (_, index) => first + index * 60)
   const offset = (time: number) => (time - first) / (end - first) * 100
   if (!event.people.length) return <div className="empty"><h3>Make room for your team</h3><p>Add people and their availability to start planning.</p></div>
-  return <div className="board-scroll"><div className="board">
+  return <><div className="board-scroll"><div className="board">
     <div className="lane"><div className="lane-name column-name">Participant</div><div className="timebar">{hours.map(hour => <span key={hour} style={{left: offset(hour) + '%'}}>{clock(hour)}</span>)}</div></div>
     {event.people.map((person, index) => <div className="lane" key={person.id}>
       <div className="lane-name"><span className={'avatar tone-' + index % 4}>{person.alias.slice(0, 2).toUpperCase()}</span><div><strong>{person.alias}</strong><small>{schedule ? `${schedule.workload[person.id] ?? 0} / ${person.limit} min` : `Up to ${person.limit} min`}</small></div></div>
@@ -38,6 +38,20 @@ function Board({event, schedule, onTask}: {event: EventInput; schedule: Schedule
       </div>
     </div>)}
   </div></div>
+  <div className="agenda">
+    {event.people.map((person, index) => {
+      const slots = event.tasks.filter(task => schedule?.assignments[task.id] === person.id).sort((a, b) => a.start - b.start)
+      return <section className="agenda-lane" key={person.id} aria-label={person.alias}>
+        <div className="agenda-person"><span className={'avatar tone-' + index % 4}>{person.alias.slice(0, 2).toUpperCase()}</span>
+          <div><strong>{person.alias}</strong><small>{schedule ? `${schedule.workload[person.id] ?? 0} / ${person.limit} min` : `Up to ${person.limit} min`}</small></div>
+        </div>
+        {slots.map(task => <button className={'agenda-slot tone-' + index % 4} key={task.id} onClick={() => onTask(task)}>
+          <strong>{task.title}</strong><small>{clock(task.start)}–{clock(task.end)}</small>
+        </button>)}
+        {!slots.length && <small className="agenda-empty">No assigned tasks</small>}
+      </section>
+    })}
+  </div></>
 }
 
 function Panel({title, close, children}: {title: string; close: () => void; children: ReactNode}) {
@@ -101,7 +115,7 @@ function App() {
   const [busy, setBusy] = useState(false)
   const [reload, refresh] = useState(0)
   const [loading, setLoading] = useState(!!target)
-  const [modal, setModal] = useState<'event' | 'open' | null>(null)
+  const [modal, setModal] = useState<'event' | 'open' | 'technical' | null>(null)
   const [person, setPerson] = useState<Person | null>(null)
   const [task, setTask] = useState<Task | null>(null)
   const [details, setDetails] = useState<Task | null>(null)
@@ -244,6 +258,10 @@ function App() {
     else {setDraft(updated); close()}
   }
   const boardEvent = published?.event ?? live
+  const isDemo = target?.workspace === demo.workspace && target.event === demo.event
+  const demoTransactions = deployment.demoTransactions as Record<string, string>
+  const scheduleTx = isDemo && published ? demoTransactions[String(version)] : undefined
+  const conflictTx = isDemo && attempt?.status === 'infeasible' ? demoTransactions.conflict : undefined
 
   return <div className="layout">
     <aside className="sidebar">
@@ -295,7 +313,7 @@ function App() {
       {view === 'My events' && <section className="surface"><div className="section-head"><h2>Recent events</h2></div>{events.length ? events.map(item => <button className="event-row" key={item.workspace + item.event} onClick={() => load(item)}><strong>{item.title}</strong><span>Open →</span></button>) : <div className="empty"><h3>Your next event starts here</h3><p>Connect a wallet and create an event, or open a shared schedule.</p></div>}</section>}
       {view === 'Schedule' && <section className="surface">
         <div className="section-head"><div><h2>Schedule board</h2><p>{published ? `Finalized schedule V${version} · Input revision ${published.schedule.revision}${stale ? ' · Earlier inputs' : ''}` : version ? 'Loading the finalized assignment snapshot…' : 'Assignments appear after GenLayer finalizes a schedule.'}</p></div>
-        <div className="actions">{meta && meta.version > 0 && <button onClick={() => navigator.clipboard.writeText(location.href).then(() => setState('Event link copied.')).catch(() => setError('Unable to copy the link.'))}>Copy link</button>}
+        <div className="actions">{contract && <button onClick={() => setModal('technical')}>Schedule details</button>}{meta && meta.version > 0 && <button onClick={() => navigator.clipboard.writeText(location.href).then(() => setState('Event link copied.')).catch(() => setError('Unable to copy the link.'))}>Copy link</button>}
         <button className="primary" disabled={!contract || !account || !target || !canEdit || !meta || !current?.tasks.length || !!draft || active || busy} onClick={() => void run(async () => {
           if (target && meta) await write('Generate schedule', 'generate', [target.workspace, target.event, meta.revision, meta.version, newId()])
         })}>Generate schedule</button></div></div>
@@ -313,6 +331,14 @@ function App() {
       </section>}
       <footer>ShiftQuorum <span>·</span> Make time work.</footer>
     </div></main>
+    {modal === 'technical' && contract && <Panel title="Schedule details" close={close}>
+      <p>GenLayer Bradbury Phase 2 testnet</p>
+      <div className="tech-links">
+        <a href={explorer + '/address/' + contract} target="_blank" rel="noreferrer">View Intelligent Contract</a>
+        {scheduleTx && <a href={explorer + '/tx/' + scheduleTx} target="_blank" rel="noreferrer">Schedule V{version} transaction</a>}
+        {conflictTx && <a href={explorer + '/tx/' + conflictTx} target="_blank" rel="noreferrer">Certified conflict transaction</a>}
+      </div>
+    </Panel>}
     {modal === 'open' && <Panel title="Open a published event" close={close}><form onSubmit={e => {
       e.preventDefault()
       if (!idPattern.test(openId) || !idPattern.test(openEvent)) {setError('Enter a valid workspace and event ID.'); return}
