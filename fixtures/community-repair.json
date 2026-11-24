@@ -1,0 +1,15 @@
+{
+  "title": "Community Repair Café",
+  "date": "2026-12-12",
+  "zone": "UTC+06:00",
+  "people": [
+    {"id":"cedar","alias":"Cedar","skills":["welcome","setup"],"availability":[[540,720]],"limit":120,"preference":"I would love to greet visitors at the welcome desk."},
+    {"id":"juniper","alias":"Juniper","skills":["welcome","setup"],"availability":[[540,720]],"limit":120,"preference":"I prefer to set up workstations away from the welcome desk."},
+    {"id":"reed","alias":"Reed","skills":["repair"],"availability":[[570,690]],"limit":90,"preference":"I enjoy helping with the repair bench."}
+  ],
+  "tasks": [
+    {"id":"welcome","title":"Welcome desk","skills":["welcome"],"start":540,"end":600},
+    {"id":"setup","title":"Workstation setup","skills":["setup"],"start":540,"end":600},
+    {"id":"repair","title":"Repair bench","skills":["repair"],"start":600,"end":660}
+  ]
+}
