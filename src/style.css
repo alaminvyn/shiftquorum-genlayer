@@ -7,3 +7,5 @@
 @media(max-width:1024px){.layout{grid-template-columns:177px minmax(0,1fr)}.sidebar{padding-inline:10px}.brand{font-size:20px}.brand img{width:34px;height:34px}}
 @media(max-width:767px){.layout{display:block}.sidebar{position:relative;height:auto;padding:10px 13px}.brand{margin:0 0 8px;font-size:21px}.side-label,.sidebar-end{display:none}.sidebar nav{display:flex;overflow-x:auto;gap:4px}.sidebar nav button{font-size:12px;padding:5px 8px;gap:4px}.sidebar nav button span{display:none}.topbar{min-height:54px}.content{padding-inline:14px}.intro{align-items:flex-start;flex-direction:column;padding:28px 0 20px;gap:13px}.intro p{font-size:13px;margin-top:8px}.section-head{align-items:flex-start;flex-direction:column;padding:15px}.calendar-empty{min-height:260px}.event-row{padding:12px 15px}.activity{align-items:flex-start;flex-direction:column}button{font-size:13px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.board-scroll .lane-name{position:sticky;left:0;z-index:1;background:white}.lane:first-child .lane-name{background:#fafbfc}

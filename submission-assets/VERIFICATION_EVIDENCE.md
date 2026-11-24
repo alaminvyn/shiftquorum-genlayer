@@ -12,8 +12,10 @@ The Phase 2 genesis and AddressManager matched the official network configuratio
 | Production Vercel URL | Pending |
 | Contract address and deployment receipt | [Signed deployment](https://scan.bradbury.genlayer.com/tx/0xf6f18a551ee5c4efc0c36c916547dd9f8b8df8e01f7f96ff14bb1ae6662953c3) finalized with successful execution. [Contract](https://scan.bradbury.genlayer.com/address/0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8). |
 | Workspace creation | [Finalized successfully](https://scan.bradbury.genlayer.com/tx/0xb2b8de19670ab37af1acbe78dc9f8b23eb101fa21db37327684545b64c7b5764) |
-| Event URL and Schedule V1 receipt | Pending |
-| Input revision and Schedule V2 receipt | Pending |
+| Initial event inputs | [Finalized successfully](https://scan.bradbury.genlayer.com/tx/0xc8ea4495fb2fd62ce999f7fc6f59a069bf02169d576f05377f70b9c6b5d64fef) |
+| Schedule V1 | [Finalized successfully](https://scan.bradbury.genlayer.com/tx/0x056d448bc5fde309feb4026027e57ef53ec9b79dbade9d9e049abcac8193c1ce). Cedar at Welcome, Juniper at Setup, and Reed at Repair. Each has 60 minutes. |
+| Input revision | [Finalized successfully](https://scan.bradbury.genlayer.com/tx/0x260bba0a3467dd678d0afbd9177358afca4f941290d176e43b35d1e0eec6be35). Cedar’s availability begins at 10:00. Setup moves to 10:00. |
+| Schedule V2 | [Finalized successfully](https://scan.bradbury.genlayer.com/tx/0x966ae8efff4c25dffd011e7698c34e3af5bdab0745e0cb5df5fdfc9617fddaa6). Juniper took Welcome, Cedar took Setup, and Reed kept Repair. |
 | Certified conflict receipt and absent V3 | Pending |
 
 Unsigned execution and local tests are preflight evidence. The deployed workflow requires successful finalized GenLayer receipts and finalized state reads to complete this table.

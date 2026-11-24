@@ -100,6 +100,7 @@ function App() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [reload, refresh] = useState(0)
+  const [loading, setLoading] = useState(!!target)
   const [modal, setModal] = useState<'event' | 'open' | null>(null)
   const [person, setPerson] = useState<Person | null>(null)
   const [task, setTask] = useState<Task | null>(null)
@@ -127,21 +128,24 @@ function App() {
   useEffect(() => {
     if (!target || !contract) return
     let canceled = false
+    setLoading(true)
     void (async () => {
       const params = [target.workspace, target.event]
       const [nextMeta, nextOwner] = await Promise.all([read<EventMeta>(contract, 'event', params), read<string>(contract, 'owner', [target.workspace], false)])
+      if (canceled) return
+      setMeta(nextMeta); setOwner(nextOwner)
       const [next, last] = nextMeta ? await Promise.all([
         read<EventInput>(contract, 'inputs_at', [...params, nextMeta.revision]),
         nextMeta.last ? read<Attempt>(contract, 'attempt', [...params, nextMeta.last]) : null,
       ]) : [null, null]
       if (canceled) return
-      setMeta(nextMeta); setOwner(nextOwner); setCurrent(next); setAttempt(last)
+      setCurrent(next); setAttempt(last)
       if (next) setEvents(previous => {
         const updated = [...previous.filter(item => item.workspace !== target.workspace || item.event !== target.event), {...target, title: next.title}]
         localStorage.setItem('sq.events', JSON.stringify(updated))
         return updated
       })
-    })().catch(reason => {if (!canceled) setError(String(reason.message ?? reason))})
+    })().catch(reason => {if (!canceled) setError(String(reason.message ?? reason))}).finally(() => {if (!canceled) setLoading(false)})
     return () => {canceled = true}
   }, [contract, reload, target])
 
@@ -290,12 +294,12 @@ function App() {
 
       {view === 'My events' && <section className="surface"><div className="section-head"><h2>Recent events</h2></div>{events.length ? events.map(item => <button className="event-row" key={item.workspace + item.event} onClick={() => load(item)}><strong>{item.title}</strong><span>Open →</span></button>) : <div className="empty"><h3>Your next event starts here</h3><p>Connect a wallet and create an event, or open a shared schedule.</p></div>}</section>}
       {view === 'Schedule' && <section className="surface">
-        <div className="section-head"><div><h2>Schedule board</h2><p>{published ? `Finalized schedule V${version} · Input revision ${published.schedule.revision}${stale ? ' · Earlier inputs' : ''}` : 'Assignments appear after GenLayer finalizes a schedule.'}</p></div>
+        <div className="section-head"><div><h2>Schedule board</h2><p>{published ? `Finalized schedule V${version} · Input revision ${published.schedule.revision}${stale ? ' · Earlier inputs' : ''}` : version ? 'Loading the finalized assignment snapshot…' : 'Assignments appear after GenLayer finalizes a schedule.'}</p></div>
         <div className="actions">{meta && meta.version > 0 && <button onClick={() => navigator.clipboard.writeText(location.href).then(() => setState('Event link copied.')).catch(() => setError('Unable to copy the link.'))}>Copy link</button>}
         <button className="primary" disabled={!contract || !account || !target || !canEdit || !meta || !current?.tasks.length || !!draft || active || busy} onClick={() => void run(async () => {
           if (target && meta) await write('Generate schedule', 'generate', [target.workspace, target.event, meta.revision, meta.version, newId()])
         })}>Generate schedule</button></div></div>
-        {boardEvent ? <Board event={boardEvent} schedule={published?.schedule ?? null} onTask={setDetails}/> : <div className="empty calendar-empty"><div className="motif" aria-hidden="true"><i/><i/><i/><i/><i/></div><h3>{target ? 'Schedule unavailable' : 'Plan your first event'}</h3><p>{target ? 'Open a finalized event or create one from your workspace.' : 'Bring tasks, availability, and preferences together in one place.'}</p></div>}
+        {boardEvent ? <Board event={boardEvent} schedule={published?.schedule ?? null} onTask={setDetails}/> : <div className="empty calendar-empty"><div className="motif" aria-hidden="true"><i/><i/><i/><i/><i/></div><h3>{target ? (loading && contract ? 'Loading event…' : 'Schedule unavailable') : 'Plan your first event'}</h3><p>{target ? (loading && contract ? 'Reading current event inputs from Bradbury.' : 'Open a finalized event or create one from your workspace.') : 'Bring tasks, availability, and preferences together in one place.'}</p></div>}
       </section>}
       {(view === 'People' || view === 'Tasks') && <section className="surface"><div className="section-head"><div><h2>{view === 'People' ? 'Participants' : 'Task slots'}</h2><p>{view === 'People' ? 'Aliases, availability, and scheduling preferences.' : 'Choose the times and skills each shift needs.'}</p></div><div className="actions">
       {canEdit && live && <button onClick={() => setModal('event')}>Event details</button>}
