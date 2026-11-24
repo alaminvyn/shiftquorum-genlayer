@@ -2,7 +2,7 @@
 
 The scheduling contract, Vite app, logo assets, test suite and synthetic event fixture are in this checkout. Bradbury Phase 2 identity, 300/300 fee quoting, unsigned constructor, JSON LLM and custom leader/validator callback passed. The pinned v0.3.0 runner uses the custom `gl.vm.run_nondet` callback.
 
-- Deployment transaction: `0xf6f18a551ee5c4efc0c36c916547dd9f8b8df8e01f7f96ff14bb1ae6662953c3`. Provisionally accepted with majority agreement. Candidate recipient `0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8`. Wait for finalized execution rather than redeploying.
+- Deployment transaction: `0xf6f18a551ee5c4efc0c36c916547dd9f8b8df8e01f7f96ff14bb1ae6662953c3`. Finalized successfully. Contract `0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8`. Use this address rather than redeploying.
 - Public repository created at `https://github.com/alaminvyn/shiftquorum-genlayer`.
 - Git commit and status are available through `git rev-parse --short HEAD` and `git status --short`.
 - The user authorized public GitHub publishing, free-tier Vercel production deployment, and preparation of Bradbury transactions. The user personally confirms wallet connection and every signed transaction.

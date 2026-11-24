@@ -10,7 +10,7 @@ The Phase 2 genesis and AddressManager matched the official network configuratio
 | --- | --- |
 | Public GitHub repository | [ShiftQuorum](https://github.com/alaminvyn/shiftquorum-genlayer) |
 | Production Vercel URL | Pending |
-| Contract address and deployment receipt | [Signed deployment](https://scan.bradbury.genlayer.com/tx/0xf6f18a551ee5c4efc0c36c916547dd9f8b8df8e01f7f96ff14bb1ae6662953c3) provisionally accepted with majority agreement. Finality pending. |
+| Contract address and deployment receipt | [Signed deployment](https://scan.bradbury.genlayer.com/tx/0xf6f18a551ee5c4efc0c36c916547dd9f8b8df8e01f7f96ff14bb1ae6662953c3) finalized with successful execution. [Contract](https://scan.bradbury.genlayer.com/address/0x58B9F0B2752DbffbF8829d72806bB39D4991c0f8). |
 | Event URL and Schedule V1 receipt | Pending |
 | Input revision and Schedule V2 receipt | Pending |
 | Certified conflict receipt and absent V3 | Pending |
